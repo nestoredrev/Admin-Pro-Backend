@@ -7,13 +7,14 @@ const app = express();
 // CORS es necesario para que el servidor acepte peticiones de diferentes dominios
 app.use(cors());
 
+// Lectura y parseo del body
+app.use( express.json() );
 
-app.get('/', (req, res) => {
-    res.status(200).json({
-        ok: true,
-        msg:'Todo ha ido bien'
-    })
-});
+
+
+
+app.use('/api/usuarios', require('./routes/usuarios-routes'));
+app.use('/api/login', require('./routes/auth-routes'));
 
 
 mongoose.connect(config.db,

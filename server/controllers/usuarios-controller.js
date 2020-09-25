@@ -6,11 +6,28 @@ const { generarJWT } = require('../helpers/jwt');
 
 const getUsuarios = async (req, res) => {
     
-    const usuarios =  await Usuario.find({}, 'nombre email role google'); // Espera que la promesa termine para seguir ejecutando el codigo
-    
+    const desde = Number(req.query.desde) || 0;
+
+    //Ejecutar las promesas una detras de la otra. Y si la query tarda mucho ese puede relentizar el proceso
+    // const usuarios =  await Usuario.find({}, 'nombre email role google') // Espera que la promesa termine para seguir ejecutando el codigo
+    //                                .skip( desde )
+    //                                .limit ( 5 )
+
+
+    // const totalRegistros = await Usuario.count();
+
+    // Ejecuta todas estas promesas a la vez (de manera simultanea). Esta manera es mas eficiente
+    const [ usuarios, totalRegistros ] = await Promise.all([
+            Usuario.find({}, 'nombre email role google') // Espera que la promesa termine para seguir ejecutando el codigo
+                         .skip( desde )
+                         .limit ( 5 ),
+            Usuario.countDocuments()
+    ]);
+                                   
     res.status(200).json({
         ok: true,
-        usuarios
+        usuarios,
+        totalRegistros
     });
 }
 
@@ -123,6 +140,7 @@ const borrarUsuario =  async (req, res) => {
         }
         else
         {
+            //db.getCollection('usuarios').deleteMany({nombre: /bai/})
             const delitedUsuario = await Usuario.findByIdAndDelete(uid);
             res.status(200).json({
                 ok: true,

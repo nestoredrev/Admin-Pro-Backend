@@ -2,7 +2,6 @@ const Medico = require('../models/medico-model');
 
 
 
-
 const getMedicos = async (req, res) => {
     
     try {
@@ -20,9 +19,9 @@ const getMedicos = async (req, res) => {
             msg: 'Hable con el admin'
         });
     }
-    
-
 }
+
+
 
 const crearMedico = async (req, res) => {
     
@@ -54,18 +53,76 @@ const crearMedico = async (req, res) => {
     }
 }
 
-const actualizarMedico = (req, res) => {
-    res.status(200).json({
-        ok: true,
-        msg: 'Actualizar Medico'
-    });
+
+
+const actualizarMedico = async (req, res) => {
+
+    const medicoId = req.params.id;
+    const uid        = req.uid;
+    
+    const cambiosMedico = {
+        ...req.body,
+        usuario: uid
+    }
+
+    try {
+
+        const medicoDB = await Medico.findById(medicoId);
+    
+        if(!medicoDB)
+        {
+            return res.status(404).json({
+                ok: false,
+                err: `No existe Medico con el id: ${medicoId}`
+            });
+        }
+
+        const medicoActualizado = await Medico.findByIdAndUpdate(medicoId, cambiosMedico, {new: true});
+
+        res.status(200).json({
+            ok: true,
+            medico: medicoActualizado
+        });
+        
+    } catch (error) {
+        return res.status(500).json({
+            ok: false,
+            msg: 'Hable con el admin'
+        });
+    }
 }
 
-const borrarMedico = (req, res) => {
-    res.status(200).json({
-        ok: true,
-        msg: 'Borrar Medico'
-    });
+
+
+const borrarMedico = async (req, res) => {
+
+    const medicoId = req.params.id;
+
+    try {
+
+        const medicoDB = await Medico.findById(medicoId);
+    
+        if(!medicoDB)
+        {
+            return res.status(404).json({
+                ok: false,
+                err: `No existe Medico con el id: ${medicoId}`
+            });
+        }
+
+        await Medico.findByIdAndDelete(medicoId);
+
+        res.status(200).json({
+            ok: true,
+            msg: `El medico ${medicoDB.nombre} fue eliminado`
+        });
+        
+    } catch (error) {
+        return res.status(500).json({
+            ok: false,
+            msg: 'Hable con el admin'
+        });
+    }   
 }
 
 module.exports = {

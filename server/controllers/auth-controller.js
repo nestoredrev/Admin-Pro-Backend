@@ -92,8 +92,22 @@ const loginGoogle = async (req, res = response) => {
     }
 }
 
+const renewToken = async (req, res) => {
+
+    uid = req.uid; // uid viene del middleware validarJWT si el token es valido
+
+    const renewToken =  await generarJWT(uid);
+
+    res.status(200).json({
+        ok: true,
+        token: renewToken
+    });
+
+}
+
 
 module.exports = {
     login,
-    loginGoogle
+    loginGoogle,
+    renewToken
 }

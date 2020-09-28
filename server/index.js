@@ -11,6 +11,10 @@ app.use(cors());
 app.use( express.json() );
 
 
+// Acceso al directorio publico
+app.use(express.static('public'));
+
+
 
 
 app.use('/api/usuarios', require('./routes/usuarios-routes'));

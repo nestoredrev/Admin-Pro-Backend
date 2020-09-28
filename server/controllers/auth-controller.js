@@ -3,6 +3,7 @@ const jwt            = require('jsonwebtoken');
 const { response }   = require('express');
 const Usuario        = require('../models/usuario-model');
 const { generarJWT } = require('../helpers/jwt');
+const { verifyGoogle } = require('../helpers/google-verify');
 
 const login =  async (req, res = response) => {
     
@@ -43,13 +44,56 @@ const login =  async (req, res = response) => {
         res.status(500).json({
             ok: false,
             error
-        })
+        });
     }
-    
+}
 
+const loginGoogle = async (req, res = response) => {
+
+    const token = req.body.token;
+
+    try {
+        const {name, email, picture }  = await verifyGoogle(token);
+        const usuarioDB = await Usuario.findOne({email});
+        let usuario;
+        
+        if(!usuarioDB)
+        {
+            usuario = new Usuario({
+                nombre: name,
+                email,
+                password: ':)',
+                img: picture,
+                google: true
+            });
+        }
+        else
+        {
+            usuario = usuarioDB;
+            usuario.google = true;
+            usuario.password = ':)';
+        }
+
+        await usuario.save();
+
+        // Generar Token
+        const tokenGen =  await generarJWT(usuario.id);
+
+        res.status(200).json({
+            ok: true,
+            token: tokenGen
+        });
+        
+    } catch (error) {
+        res.status(401).json({
+            ok: false,
+            msg: 'Token incorrecto o no valido'
+        });
+    }
 }
 
 
 module.exports = {
-    login
+    login,
+    loginGoogle
 }

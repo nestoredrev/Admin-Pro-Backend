@@ -18,7 +18,7 @@ const getUsuarios = async (req, res) => {
 
     // Ejecuta todas estas promesas a la vez (de manera simultanea). Esta manera es mas eficiente
     const [ usuarios, totalRegistros ] = await Promise.all([
-            Usuario.find({}, 'nombre email role google') // Espera que la promesa termine para seguir ejecutando el codigo
+            Usuario.find({}, 'nombre email role google, img') // Espera que la promesa termine para seguir ejecutando el codigo
                          .skip( desde )
                          .limit ( 5 ),
             Usuario.countDocuments()
@@ -86,23 +86,39 @@ const actualizarUsuario = async (req, res) =>{
         }
         else
         {
-            // const data = req.body;
-            
-            // De esta manera tambien eliminamos los campos password y google
-            const {password, google, ...data} = req.body;
+            // De esta manera tambien eliminamos los campos google y password del objeto data
+            const {google, password, ...data} = req.body;
 
-            // Eliminar campos que nos vienen en el post 
-            // delete data.password; 
+            // Eliminar campos que nos vienen en el post  
             // delete data.google;
 
-            const existeEmail = await Usuario.findOne({ email: data.email });
-            if(existeEmail)
+            if ( usuarioDB.email !== data.email )
             {
-                return res.status(400).json({
-                    ok: false,
-                    msg: `El email ${data.email} ya esta en uso`
-                });
+                // Solo actualizar el email si el usuario no ha entrado con Google
+                if(!usuarioDB.google)
+                {
+                    const existeEmail = await Usuario.findOne({ email: data.email });
+                    if(existeEmail)
+                    {
+                        return res.status(400).json({
+                            ok: false,
+                            msg: `El email ${data.email} ya esta en uso`
+                        });
+                    }
+                }
+                else
+                {
+                    return res.status(400).json({
+                        ok: false,
+                        msg: `Los usuario de Google no pueden cambiar su correo`
+                    });
+                }
             }
+
+            // Encriptar contraseña
+            const salt = bcryptjs.genSaltSync();
+            usuarioDB.password = bcryptjs.hashSync( password, salt );
+            await usuarioDB.save();
 
             /*
                 new true devuelve el usuario ya actualizado

@@ -18,7 +18,7 @@ const getUsuarios = async (req, res) => {
 
     // Ejecuta todas estas promesas a la vez (de manera simultanea). Esta manera es mas eficiente
     const [ usuarios, totalRegistros ] = await Promise.all([
-            Usuario.find({}, 'nombre email role google, img') // Espera que la promesa termine para seguir ejecutando el codigo
+            Usuario.find({}, 'nombre email role google img') // Espera que la promesa termine para seguir ejecutando el codigo
                          .skip( desde )
                          .limit ( 5 ),
             Usuario.countDocuments()
@@ -71,7 +71,7 @@ const crearUsuario = async (req, res) => {
     });
 }
 
-const actualizarUsuario = async (req, res) =>{
+const actualizarPerfilUsuario = async (req, res) =>{
     const uid  = req.params.id;
     try {
 
@@ -139,6 +139,68 @@ const actualizarUsuario = async (req, res) =>{
 }
 
 
+const actualizarUsuario =  async (req,res) => {
+    const uid  = req.params.id;
+    try {
+
+        const usuarioDB = await Usuario.findById( uid );
+
+        if(!usuarioDB)
+        {
+            return res.status(400).json({
+                ok: false,
+                msg: `Usuario con id: ${uid} no existe`
+            });
+        }
+        else
+        {
+            // De esta manera tambien eliminamos los campos google y editable del objeto data
+            const {google, editable, ...data} = req.body;
+
+            // Eliminar campos que nos vienen en el post  
+            // delete data.google;
+
+            if ( usuarioDB.email !== data.email )
+            {
+                // Solo actualizar el email si el usuario no ha entrado con Google
+                if(!usuarioDB.google)
+                {
+                    const existeEmail = await Usuario.findOne({ email: data.email });
+                    if(existeEmail)
+                    {
+                        return res.status(400).json({
+                            ok: false,
+                            msg: `El email ${data.email} ya esta en uso`
+                        });
+                    }
+                }
+                else
+                {
+                    return res.status(400).json({
+                        ok: false,
+                        msg: `Los usuario de Google no pueden cambiar su correo`
+                    });
+                }
+            }
+            /*
+                new true devuelve el usuario ya actualizado
+                new false devuelve el usuario antes de la actualizacion
+            */
+            const usuarioActualizado = await Usuario.findByIdAndUpdate(uid, data, {new: true});
+            res.status(200).json({
+                ok: true,
+                usuarioActualizado
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            ok: false,
+            error
+        });
+    }
+}
+
+
 const borrarUsuario =  async (req, res) => {
 
     const uid  = req.params.id;
@@ -175,6 +237,7 @@ const borrarUsuario =  async (req, res) => {
 module.exports = {
     getUsuarios,
     crearUsuario,
+    actualizarPerfilUsuario,
     actualizarUsuario,
     borrarUsuario
 }

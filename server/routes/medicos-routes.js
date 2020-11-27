@@ -2,7 +2,7 @@
 
 const { Router }        = require('express');
 const { check } = require('express-validator');
-const { getMedicos, crearMedico, actualizarMedico, borrarMedico } = require('../controllers/medicos-controller');
+const { getMedicos, getMedico, crearMedico, actualizarMedico, borrarMedico } = require('../controllers/medicos-controller');
 const { validarCampos } = require('../middlewares/validar-campos');
 const { validarJWT } = require('../middlewares/validar-jwt');
 
@@ -12,7 +12,12 @@ const router = Router();
 /*
 Separar las rutas de la logica. Dicha logica se encuentra en los controllers
 */
-router.get('/', getMedicos );
+router.get('/', validarJWT, getMedicos );
+router.get('/:id', [ 
+    validarJWT,
+    check('id', 'Medico no valido').isMongoId(),
+    validarCampos
+], getMedico );
 
 
 router.post('/', [

@@ -7,10 +7,40 @@ const getMedicos = async (req, res) => {
     try {
         const medicos =  await Medico.find({})
                                      .populate('hospital', 'nombre img')
-                                     .populate('usuario', 'nombre img, role', {'nombre':'test 1'}) // populate: path, select, match
+                                     //.populate('usuario', 'nombre img, role', {'nombre':'test 1'}) // populate: path, select, match
+                                     .populate('usuario', 'nombre img role') // populate: path, select, match
         res.status(200).json({
             ok: true,
             medicos
+        });
+        
+    } catch (error) {
+        return res.status(500).json({
+            ok: true,
+            msg: 'Hable con el admin'
+        });
+    }
+}
+
+
+const getMedico = async (req, res) => {
+    const medicoId = req.params.id;
+    try {
+        const medicoDB =  await Medico.findById(medicoId)
+                                     .populate('hospital', 'nombre img')
+                                     //.populate('usuario', 'nombre img, role', {'nombre':'test 1'}) // populate: path, select, match
+                                     .populate('usuario', 'nombre img role') // populate: path, select, match
+        if(!medicoDB)
+        {
+            return res.status(404).json({
+                ok: false,
+                err: `No existe Medico con el id: ${medicoId}`
+            });
+        }
+        
+        res.status(200).json({
+            ok: true,
+            medicoDB
         });
         
     } catch (error) {
@@ -127,6 +157,7 @@ const borrarMedico = async (req, res) => {
 
 module.exports = {
     getMedicos,
+    getMedico,
     crearMedico,
     actualizarMedico,
     borrarMedico

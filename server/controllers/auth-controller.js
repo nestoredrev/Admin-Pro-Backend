@@ -4,6 +4,7 @@ const { response }   = require('express');
 const Usuario        = require('../models/usuario-model');
 const { generarJWT } = require('../helpers/jwt');
 const { verifyGoogle } = require('../helpers/google-verify');
+const { getMenuFrontEnd } = require('../helpers/menu-frontend');
 
 const login =  async (req, res = response) => {
     
@@ -37,7 +38,8 @@ const login =  async (req, res = response) => {
  
         res.status(200).json({
             ok: true,
-            token
+            token,
+            menu: getMenuFrontEnd( usuarioDB.role )
         });
         
     } catch (error) {
@@ -81,7 +83,8 @@ const loginGoogle = async (req, res = response) => {
 
         res.status(200).json({
             ok: true,
-            token: tokenGen
+            token: tokenGen,
+            menu: getMenuFrontEnd( usuario.role )
         });
         
     } catch (error) {
@@ -103,7 +106,8 @@ const renewToken = async (req, res) => {
     res.status(200).json({
         ok: true,
         token: renewToken,
-        usuario
+        usuario,
+        menu: getMenuFrontEnd( usuario.role )
     });
 
 }

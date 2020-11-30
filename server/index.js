@@ -2,7 +2,9 @@ const config    = require('./config/config');
 const express   = require('express');
 const mongoose  = require('mongoose');
 const cors      = require('cors');
+
 const app = express();
+const path = require('path');
 
 // CORS es necesario para que el servidor acepte peticiones de diferentes dominios
 app.use(cors());
@@ -24,6 +26,10 @@ app.use('/api/todo', require('./routes/busqueda-routes'));
 app.use('/api/upload', require('./routes/upload-routes'));
 app.use('/api/login', require('./routes/auth-routes'));
 
+// Ruta por defecto si no encuentra ninguna ruta de las definidas para el tema de despligue
+app.get('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, 'public/index.html'));
+})
 
 mongoose.connect(config.db,
     { 
